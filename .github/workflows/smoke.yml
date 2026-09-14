@@ -1,5 +1,10 @@
 name: smoke
 
+# A ten-line canary. When every workflow in the repository reports
+# startup_failure with no annotation, the cause is not the workflow files:
+# Actions is off for the repository or the account. If this one does not run
+# either, look at Settings then Actions then General, and at billing, before
+# touching build.yml.
 on:
   push:
   workflow_dispatch:
@@ -8,4 +13,4 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
-      - run: echo ok
+      - run: echo "Actions is working."
