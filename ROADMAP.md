@@ -4,8 +4,14 @@ Par ordre de valeur réelle, pas de difficulté.
 
 ## À valider en premier
 
+- [ ] **Activer GitHub Actions sur le dépôt.** Bloquant, et rien d'autre ne peut
+      avancer avant. Tous les workflows échouent au démarrage sans annotation, y
+      compris `smoke.yml` qui ne fait qu'un `echo` : ce n'est donc pas un
+      problème de fichier. Regarder Settings puis Actions puis General
+      (« Allow all actions »), et la facturation, le dépôt étant privé.
 - [ ] **Premier build CI vert.** Les modules Android n'ont jamais été compilés,
-      seulement écrits. Attendre des erreurs de compilation au premier run.
+      seulement écrits. Attendre des erreurs de compilation au premier run, et
+      compter quelques allers-retours : c'est llama.cpp qui est long à bâtir.
 - [ ] **Vérifier les URL du catalogue de modèles.** Elles suivent la convention
       de nommage de `bartowski` mais n'ont pas été testées. Un 404 au
       téléchargement se corrige en éditant `ModelCatalog.kt`.
