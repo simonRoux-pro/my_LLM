@@ -36,16 +36,28 @@ jobs:
       - name: Restore signing keystore
         # Unsigned release APKs cannot be installed. When no keystore secret is
         # configured the build still runs and produces a debug-signed APK, so a
-        # fresh fork is not blocked on secrets it does not have.
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        # fresh clone is not blocked on secrets it does not have.
+        #
+        # The check is in the shell rather than in `if:`, because the secrets
+        # context is not available to step-level conditions and using it there
+        # fails the whole workflow before any job starts.
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
-          cat > keystore.properties <<PROPS
-          storeFile=release.keystore
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          PROPS
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "No signing keystore configured; the APK will be debug-signed."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+          {
+            echo "storeFile=release.keystore"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > keystore.properties
 
       - name: Build release APK
         run: ./gradlew assembleRelease --no-daemon --stacktrace
