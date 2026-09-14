@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A prompt caret over a chip outline: local inference, on a device.
+  Drawn as vectors so there is no density ladder of PNGs to keep in sync.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:pathData="M34,34h40v40h-40z"
+        android:strokeColor="#7AA2F7"
+        android:strokeWidth="3.5"
+        android:fillColor="#00000000" />
+
+    <path
+        android:pathData="M42,26v-8 M54,26v-8 M66,26v-8 M42,90v-8 M54,90v-8 M66,90v-8"
+        android:strokeColor="#7AA2F7"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M26,42h-8 M26,54h-8 M26,66h-8 M90,42h8 M90,54h8 M90,66h8"
+        android:strokeColor="#7AA2F7"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M45,46l8,8l-8,8"
+        android:strokeColor="#9ECE6A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M57,62h8"
+        android:strokeColor="#9ECE6A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round" />
+</vector>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The Compose theme does the real work. This exists so the window has sane
+      colours during the few frames before the first composition, which is what
+      stops the cold start flashing white on a dark-themed phone.
+    -->
+    <style name="Theme.MyLlm" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/background_dark</item>
+    </style>
+</resources>
