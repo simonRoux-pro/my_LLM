@@ -40,17 +40,15 @@ jobs:
             "ndk;27.2.12479018" "cmake;3.22.1" > /dev/null
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
 
-      - name: Unit tests
-        run: ./gradlew test --no-daemon --stacktrace
-
-      - name: Lint
-        run: ./gradlew lintDebug --no-daemon --stacktrace
-        continue-on-error: true
-
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Tests and debug APK
+        run: |
+          # pipefail so tee does not swallow Gradle's exit code.
+          set -o pipefail
+          ./gradlew test assembleDebug --no-daemon --console=plain --stacktrace \
+            2>&1 | tee gradle-output.log
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: myllm-debug-apk
@@ -58,12 +56,33 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload test reports
+      - name: Upload full build log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
-          path: |
-            **/build/reports/tests/
-            **/build/reports/lint-results-*.html
+          name: gradle-log
+          path: gradle-output.log
           retention-days: 7
+
+      # Deliberately the last step so it lands at the end of the job log.
+      # Gradle prints compiler diagnostics in the middle of a long run and the
+      # tail of the log is otherwise nothing but a Gradle stack trace, which
+      # says what failed but never why.
+      - name: Compiler diagnostics
+        if: failure()
+        run: |
+          echo "=============== KOTLIN / JAVA ERRORS ==============="
+          grep -E "^(e: |w: .*error|ERROR:)" gradle-output.log | head -150 \
+            || echo "(none found)"
+          echo
+          echo "=============== NATIVE (CMAKE / NDK) ==============="
+          grep -iE "(error:|fatal error|undefined reference|CMake Error)" gradle-output.log \
+            | grep -v "^e: " | head -60 || echo "(none found)"
+          echo
+          echo "=============== FAILING GRADLE TASKS ==============="
+          grep -E "^(> Task .*(FAILED|failed)|FAILURE:|\* What went wrong:)" gradle-output.log \
+            | head -30 || echo "(none found)"
+          echo
+          echo "=============== TEST FAILURES ==============="
+          grep -E "(tests? completed.*(failed|error)|FAILED$)" gradle-output.log \
+            | head -30 || echo "(none found)"
