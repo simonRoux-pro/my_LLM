@@ -27,7 +27,12 @@ import androidx.room.RoomDatabase
         ModelEntity::class,
     ],
     version = 1,
-    exportSchema = true,
+    // Schema export is off until it is wired through the Room Gradle plugin.
+    // Passing room.schemaLocation as a bare KSP argument makes Room 2.6.1 fail
+    // with "Empty schema file" on the release variant. There is only one
+    // version and no migration yet, so nothing is lost by waiting; see
+    // ROADMAP.md before adding version 2.
+    exportSchema = false,
 )
 abstract class MyLlmDatabase : RoomDatabase() {
 

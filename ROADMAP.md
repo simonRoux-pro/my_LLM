@@ -20,6 +20,13 @@ Par ordre de valeur réelle, pas de difficulté.
       vrai. Si ça casse, `ScriptSandbox` est derrière une interface : QuickJS
       via le NDK est le remplaçant, la couche native existe déjà.
 
+- [ ] **Rétablir l'export de schéma Room.** Désactivé pour débloquer la CI :
+      `room.schemaLocation` passé en argument KSP fait échouer Room 2.6.1 avec
+      « Empty schema file » sur la variante release. Le faire proprement via le
+      plugin Gradle `androidx.room` et `room { schemaDirectory(...) }`.
+      **À traiter avant de passer la base en version 2**, sinon une migration
+      qui perd des données ne sera détectée que sur le téléphone.
+
 ## Ensuite
 
 - [ ] **Import d'un GGUF depuis le stockage.** Le téléchargement par URL marche ;

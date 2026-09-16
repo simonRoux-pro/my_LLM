@@ -23,13 +23,6 @@ android {
     }
 }
 
-ksp {
-    // Schemas are committed so a migration that would lose data fails the build
-    // instead of failing on the phone.
-    arg("room.schemaLocation", "$projectDir/schemas")
-    arg("room.generateKotlin", "true")
-}
-
 dependencies {
     api(project(":core:model"))
     api(project(":agent"))
