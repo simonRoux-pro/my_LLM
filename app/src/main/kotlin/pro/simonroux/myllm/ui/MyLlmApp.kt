@@ -4,11 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Chat
-import androidx.compose.material.icons.outlined.Extension
-import androidx.compose.material.icons.outlined.Memory
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Update
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -31,6 +28,7 @@ import pro.simonroux.myllm.ui.devloop.DevLoopScreen
 import pro.simonroux.myllm.ui.models.ModelsScreen
 import pro.simonroux.myllm.ui.settings.SettingsScreen
 import pro.simonroux.myllm.ui.skills.SkillsScreen
+import pro.simonroux.myllm.ui.theme.AppIcons
 
 /**
  * Five destinations, flat.
@@ -44,11 +42,11 @@ private enum class Destination(
     val label: String,
     val icon: ImageVector,
 ) {
-    Chat("chat", "Chat", Icons.Outlined.Chat),
-    Models("models", "Modèles", Icons.Outlined.Memory),
-    Skills("skills", "Skills", Icons.Outlined.Extension),
-    DevLoop("devloop", "Évolutions", Icons.Outlined.Update),
-    Settings("settings", "Réglages", Icons.Outlined.Settings),
+    Chat("chat", "Chat", AppIcons.Chat),
+    Models("models", "Modèles", AppIcons.Chip),
+    Skills("skills", "Skills", AppIcons.Blocks),
+    DevLoop("devloop", "Évolutions", Icons.Default.Refresh),
+    Settings("settings", "Réglages", Icons.Default.Settings),
 }
 
 @Composable

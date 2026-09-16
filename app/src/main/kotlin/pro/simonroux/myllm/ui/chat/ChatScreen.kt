@@ -19,8 +19,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -52,6 +51,7 @@ import pro.simonroux.myllm.core.AppContainer
 import pro.simonroux.myllm.core.model.AppSettings
 import pro.simonroux.myllm.core.model.ChatMessage
 import pro.simonroux.myllm.core.model.ChatRole
+import pro.simonroux.myllm.ui.theme.AppIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -393,9 +393,9 @@ private fun Composer(
                 enabled = isGenerating || value.isNotBlank(),
             ) {
                 if (isGenerating) {
-                    Icon(Icons.Default.Stop, contentDescription = "Arrêter")
+                    Icon(AppIcons.Stop, contentDescription = "Arrêter")
                 } else {
-                    Icon(Icons.Default.ArrowUpward, contentDescription = "Envoyer")
+                    Icon(Icons.Default.Send, contentDescription = "Envoyer")
                 }
             }
         }

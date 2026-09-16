@@ -41,6 +41,14 @@ Par ordre de valeur réelle, pas de difficulté.
 - [ ] **Liste et recherche des conversations.** La persistance et la requête de
       recherche sont écrites, l'écran n'existe pas.
 
+- [ ] **Réduire la bibliothèque native.** 44 Mo pour llama.cpp arm64. À mesurer
+      avec `readelf`/`nm` avant de toucher aux options de lien : mettre `-s` au
+      hasard risque de casser la résolution JNI, qui est le cœur du produit.
+- [ ] **Signer les releases.** Sans keystore, `assembleRelease` produit un APK
+      non signé qu'aucun appareil n'installe ; la CI refuse maintenant de le
+      publier. Une release minifiée par R8 serait bien plus légère que le
+      build de debug.
+
 ## Plus tard
 
 - [ ] Poussée directe d'une demande de modification en issue GitHub, avec un PAT
