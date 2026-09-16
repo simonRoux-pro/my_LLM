@@ -19,10 +19,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments += listOf(
-                    "-DANDROID_STL=c++_static",
-                    "-DCMAKE_BUILD_TYPE=Release",
-                )
+                arguments += "-DANDROID_STL=c++_static"
                 cppFlags += "-std=c++17"
             }
         }
@@ -36,8 +33,34 @@ android {
     }
 
     buildTypes {
+        /**
+         * The native side is built optimised even in debug.
+         *
+         * AGP picks CMAKE_BUILD_TYPE from isJniDebuggable, so a debug variant
+         * otherwise compiles ggml with -O0 and full symbols. That is the wrong
+         * trade twice over: it made the APK 108 MB, and an unoptimised matmul
+         * kernel is several times slower, which on this app means the local
+         * model looks broken rather than merely undebuggable.
+         *
+         * Setting the build type on the command line as well is belt and
+         * braces: the last -D on a CMake invocation wins, whatever AGP injected.
+         */
+        debug {
+            isJniDebuggable = false
+            externalNativeBuild {
+                cmake {
+                    arguments += "-DCMAKE_BUILD_TYPE=Release"
+                }
+            }
+        }
+
         release {
             isMinifyEnabled = false
+            externalNativeBuild {
+                cmake {
+                    arguments += "-DCMAKE_BUILD_TYPE=Release"
+                }
+            }
         }
     }
 

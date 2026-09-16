@@ -67,6 +67,8 @@ jobs:
           }
           mkdir -p dist
           cp "$APK" dist/myllm-debug.apk
+          echo "APK_SIZE=$(du -h dist/myllm-debug.apk | cut -f1)" >> "$GITHUB_ENV"
+          echo "NATIVE_SIZE=$(unzip -l "$APK" | grep 'libmyllm_llama.so' | awk '{print int($1/1048576)" Mo"}')" >> "$GITHUB_ENV"
 
       - name: Upload APK
         if: success()
@@ -94,6 +96,7 @@ jobs:
             APK de développement, reconstruit à chaque push sur `main`.
 
             Commit : ${{ github.sha }}
+            Taille : ${{ env.APK_SIZE }} (moteur natif : ${{ env.NATIVE_SIZE }})
 
             Lien direct, toujours à jour :
             https://github.com/simonRoux-pro/my_LLM/releases/download/latest-debug/myllm-debug.apk
