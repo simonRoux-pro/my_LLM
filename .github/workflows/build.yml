@@ -16,6 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
+    # Needed to publish the rolling debug release below. Nothing else in this
+    # workflow writes to the repository.
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,6 +65,8 @@ jobs:
             echo "No native library in the APK. The llama.cpp engine is missing."
             exit 1
           }
+          mkdir -p dist
+          cp "$APK" dist/myllm-debug.apk
 
       - name: Upload APK
         if: success()
@@ -69,6 +76,32 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
+
+      # A fixed tag means one permanent link that always points at the newest
+      # build: https://github.com/simonRoux-pro/my_LLM/releases/download/latest-debug/myllm-debug.apk
+      # An artifact would need a GitHub login and arrive as a zip, which is
+      # unusable from the phone this app is for.
+      #
+      # Marked prerelease so the in-app updater ignores it: these are debug
+      # builds off main, not versions anyone chose to ship.
+      - name: Publish rolling debug build
+        if: success() && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-debug
+          name: Dernier build de développement
+          body: |
+            APK de développement, reconstruit à chaque push sur `main`.
+
+            Commit : ${{ github.sha }}
+
+            Lien direct, toujours à jour :
+            https://github.com/simonRoux-pro/my_LLM/releases/download/latest-debug/myllm-debug.apk
+
+            Signé avec la clé de debug d'Android. Pour l'installer il faut
+            autoriser les sources inconnues pour le navigateur.
+          prerelease: true
+          files: dist/myllm-debug.apk
 
       - name: Upload full build log
         if: always()

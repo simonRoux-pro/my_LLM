@@ -62,6 +62,19 @@ jobs:
       - name: Build release APK
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
+      # An unsigned release APK cannot be installed on any device. Failing here
+      # is better than publishing a file that looks right and is refused by the
+      # package installer with no explanation.
+      - name: Refuse to publish an unsigned APK
+        run: |
+          if ls app/build/outputs/apk/release/*unsigned*.apk >/dev/null 2>&1; then
+            echo "The release APK is unsigned: no signing keystore is configured."
+            echo "Add the KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS and"
+            echo "KEY_PASSWORD secrets, or install the rolling debug build from"
+            echo "the latest-debug release instead."
+            exit 1
+          fi
+
       - name: Rename APK
         run: |
           mkdir -p dist
