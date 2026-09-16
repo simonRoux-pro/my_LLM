@@ -65,6 +65,21 @@ jobs:
             echo "No native library in the APK. The llama.cpp engine is missing."
             exit 1
           }
+          echo "--- where the megabytes are ---"
+          unzip -l "$APK" | awk '
+            /\.so$/      { so   += $1 }
+            /\.dex$/     { dex  += $1 }
+            /^ *[0-9]+ .*resources\.arsc$/ { arsc += $1 }
+            /res\//      { res  += $1 }
+            /assets\//   { ass  += $1 }
+            { total += $1 }
+            END {
+              printf "  native .so   %8.1f Mo\n", so/1048576
+              printf "  dex (code)   %8.1f Mo\n", dex/1048576
+              printf "  resources    %8.1f Mo\n", (res+arsc)/1048576
+              printf "  assets       %8.1f Mo\n", ass/1048576
+              printf "  uncompressed %8.1f Mo\n", total/1048576
+            }'
           mkdir -p dist
           cp "$APK" dist/myllm-debug.apk
           echo "APK_SIZE=$(du -h dist/myllm-debug.apk | cut -f1)" >> "$GITHUB_ENV"
