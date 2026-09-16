@@ -33,9 +33,13 @@ private val Context.secretsDataStore by preferencesDataStore(name = "myllm_secre
  */
 class SecretStore(private val context: Context) {
 
-    suspend fun put(alias: String, value: String) = withContext(Dispatchers.IO) {
+    // The return type is spelled out: an expression body would infer DataStore's
+    // Preferences from edit(), putting that type in this class's public API and
+    // on the compile classpath of everything that stores a key.
+    suspend fun put(alias: String, value: String): Unit = withContext(Dispatchers.IO) {
         val encrypted = encrypt(value)
         context.secretsDataStore.edit { it[stringPreferencesKey(alias)] = encrypted }
+        Unit
     }
 
     suspend fun get(alias: String): String? = withContext(Dispatchers.IO) {
@@ -45,7 +49,7 @@ class SecretStore(private val context: Context) {
         decrypt(stored)
     }
 
-    suspend fun remove(alias: String) = withContext(Dispatchers.IO) {
+    suspend fun remove(alias: String): Unit = withContext(Dispatchers.IO) {
         context.secretsDataStore.edit { it.remove(stringPreferencesKey(alias)) }
         Unit
     }

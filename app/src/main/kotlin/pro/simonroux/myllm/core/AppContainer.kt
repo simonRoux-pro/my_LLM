@@ -8,17 +8,9 @@ import pro.simonroux.myllm.agent.script.ScriptSandbox
 import pro.simonroux.myllm.agent.script.SkillTool
 import pro.simonroux.myllm.agent.tools.BuiltInTools
 import pro.simonroux.myllm.agent.tools.SkillAdminTools
-import pro.simonroux.myllm.core.data.db.MyLlmDatabase
-import pro.simonroux.myllm.core.data.repo.AndroidToolHost
-import pro.simonroux.myllm.core.data.repo.ChangeRequestRepository
-import pro.simonroux.myllm.core.data.repo.ChatRepository
+import pro.simonroux.myllm.agent.ToolHost
+import pro.simonroux.myllm.core.data.DataModule
 import pro.simonroux.myllm.core.data.repo.ModelCatalog
-import pro.simonroux.myllm.core.data.repo.ModelDownloader
-import pro.simonroux.myllm.core.data.repo.ModelRepository
-import pro.simonroux.myllm.core.data.repo.NoteRepository
-import pro.simonroux.myllm.core.data.repo.SkillRepository
-import pro.simonroux.myllm.core.data.store.SecretStore
-import pro.simonroux.myllm.core.data.store.SettingsStore
 import pro.simonroux.myllm.core.model.GenerationEvent
 import pro.simonroux.myllm.core.model.GenerationParams
 import pro.simonroux.myllm.core.model.Outcome
@@ -36,26 +28,19 @@ import pro.simonroux.myllm.update.Updater
  */
 class AppContainer(private val context: Context) {
 
-    val database: MyLlmDatabase by lazy { MyLlmDatabase.create(context) }
+    private val data = DataModule(context, BuildConfig.VERSION_NAME)
 
-    val settingsStore: SettingsStore by lazy { SettingsStore(context) }
-    val secretStore: SecretStore by lazy { SecretStore(context) }
-
-    val chatRepository: ChatRepository by lazy {
-        ChatRepository(database.conversations(), database.messages())
-    }
-
-    val skillRepository: SkillRepository by lazy { SkillRepository(database.skills()) }
-
-    val noteRepository: NoteRepository by lazy { NoteRepository(database.notes()) }
-
-    val modelRepository: ModelRepository by lazy { ModelRepository(context, database.models()) }
-
-    val modelDownloader: ModelDownloader by lazy { ModelDownloader(modelRepository) }
-
-    val changeRequestRepository: ChangeRequestRepository by lazy {
-        ChangeRequestRepository(database.changeRequests(), BuildConfig.VERSION_NAME)
-    }
+    // Getters rather than vals: reading a val here would construct every
+    // repository, and the database with them, while Application.onCreate is
+    // still on the main thread.
+    val settingsStore get() = data.settings
+    val secretStore get() = data.secrets
+    val chatRepository get() = data.chat
+    val skillRepository get() = data.skills
+    val noteRepository get() = data.notes
+    val modelRepository get() = data.models
+    val modelDownloader get() = data.downloader
+    val changeRequestRepository get() = data.changeRequests
 
     val engineManager: EngineManager by lazy {
         EngineManager(settingsStore, secretStore, modelRepository)
@@ -67,10 +52,8 @@ class AppContainer(private val context: Context) {
 
     val toolRegistry: ToolRegistry by lazy { ToolRegistry() }
 
-    val toolHost: AndroidToolHost by lazy {
-        AndroidToolHost(
-            context = context,
-            skillMemory = database.skillMemory(),
+    val toolHost: ToolHost by lazy {
+        data.createToolHost(
             offlineOnly = { settingsStore.current().offlineOnly },
             subCompletion = ::subCompletion,
         )
