@@ -1,5 +1,7 @@
 # myLLM
 
+[![build](https://github.com/simonRoux-pro/my_LLM/actions/workflows/build.yml/badge.svg)](https://github.com/simonRoux-pro/my_LLM/actions/workflows/build.yml)
+
 Un assistant LLM personnel qui tourne sur le téléphone, fonctionne sans réseau,
 et sait écrire ses propres outils.
 
