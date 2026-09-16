@@ -65,21 +65,23 @@ jobs:
             echo "No native library in the APK. The llama.cpp engine is missing."
             exit 1
           }
-          echo "--- where the megabytes are ---"
-          unzip -l "$APK" | awk '
-            /\.so$/      { so   += $1 }
-            /\.dex$/     { dex  += $1 }
-            /^ *[0-9]+ .*resources\.arsc$/ { arsc += $1 }
-            /res\//      { res  += $1 }
-            /assets\//   { ass  += $1 }
+          # Written into the release notes rather than only the log: a size
+          # regression is something to notice while installing, not something
+          # to go digging for in a build that already finished.
+          BREAKDOWN=$(unzip -l "$APK" | awk '
+            /\.so$/  { so  += $1 }
+            /\.dex$/ { dex += $1 }
+            /resources\.arsc$/ { arsc += $1 }
+            /res\//  { res += $1 }
+            /assets\// { ass += $1 }
             { total += $1 }
             END {
-              printf "  native .so   %8.1f Mo\n", so/1048576
-              printf "  dex (code)   %8.1f Mo\n", dex/1048576
-              printf "  resources    %8.1f Mo\n", (res+arsc)/1048576
-              printf "  assets       %8.1f Mo\n", ass/1048576
-              printf "  uncompressed %8.1f Mo\n", total/1048576
-            }'
+              printf "natif %.0f Mo, code %.0f Mo, ressources %.0f Mo, assets %.0f Mo, total décompressé %.0f Mo",
+                so/1048576, dex/1048576, (res+arsc)/1048576, ass/1048576, total/1048576
+            }')
+          echo "--- where the megabytes are ---"
+          echo "$BREAKDOWN"
+          echo "APK_BREAKDOWN=$BREAKDOWN" >> "$GITHUB_ENV"
           mkdir -p dist
           cp "$APK" dist/myllm-debug.apk
           echo "APK_SIZE=$(du -h dist/myllm-debug.apk | cut -f1)" >> "$GITHUB_ENV"
@@ -111,7 +113,8 @@ jobs:
             APK de développement, reconstruit à chaque push sur `main`.
 
             Commit : ${{ github.sha }}
-            Taille : ${{ env.APK_SIZE }} (moteur natif : ${{ env.NATIVE_SIZE }})
+            Taille du fichier : ${{ env.APK_SIZE }}
+            Contenu : ${{ env.APK_BREAKDOWN }}
 
             Lien direct, toujours à jour :
             https://github.com/simonRoux-pro/my_LLM/releases/download/latest-debug/myllm-debug.apk
