@@ -26,7 +26,10 @@ import pro.simonroux.myllm.update.Updater
  * build for reasons that are invisible in the source. That matters more than
  * usual in a codebase meant to rewrite itself.
  */
-class AppContainer(private val context: Context) {
+class AppContainer(
+    private val context: Context,
+    val crashReporter: CrashReporter,
+) {
 
     private val data = DataModule(context, BuildConfig.VERSION_NAME)
 
@@ -85,20 +88,35 @@ class AppContainer(private val context: Context) {
      * to first use.
      */
     suspend fun initialise() {
-        val settings = settingsStore.current()
-        requireSelfModificationConfirmation = settings.agent.confirmSelfModification
-
-        modelRepository.seedCatalog(ModelCatalog.suggestions)
-        modelRepository.reconcile()
-
-        BuiltInTools.all(noteRepository, changeRequestRepository)
-            .forEach { toolRegistry.registerBuiltIn(it) }
-
-        if (settings.agent.selfModificationEnabled) {
-            skillAdminTools.all().forEach { toolRegistry.registerBuiltIn(it) }
+        // Each step is isolated: a model catalogue that fails to seed should not
+        // leave the agent with no tools, and neither failure should stop the
+        // chat screen from opening.
+        step("réglages") {
+            val settings = settingsStore.current()
+            requireSelfModificationConfirmation = settings.agent.confirmSelfModification
         }
 
-        refreshSkillTools()
+        step("catalogue de modèles") {
+            modelRepository.seedCatalog(ModelCatalog.suggestions)
+            modelRepository.reconcile()
+        }
+
+        step("outils intégrés") {
+            BuiltInTools.all(noteRepository, changeRequestRepository)
+                .forEach { toolRegistry.registerBuiltIn(it) }
+        }
+
+        step("outils d'auto-modification") {
+            if (settingsStore.current().agent.selfModificationEnabled) {
+                skillAdminTools.all().forEach { toolRegistry.registerBuiltIn(it) }
+            }
+        }
+
+        step("skills") { refreshSkillTools() }
+    }
+
+    private suspend fun step(name: String, block: suspend () -> Unit) {
+        runCatching { block() }.onFailure { crashReporter.recordNonFatal("init: $name", it) }
     }
 
     /** Rebuilds the skill-backed tools from what is enabled in the database. */

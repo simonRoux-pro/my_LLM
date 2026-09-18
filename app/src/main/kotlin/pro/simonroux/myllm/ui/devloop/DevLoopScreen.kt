@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -31,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -61,6 +64,7 @@ fun DevLoopScreen(container: AppContainer) {
     var draftBody by remember { mutableStateOf("") }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { TopAppBar(title = { Text("Évolutions") }) },
     ) { padding ->
         LazyColumn(
@@ -68,6 +72,22 @@ fun DevLoopScreen(container: AppContainer) {
             contentPadding = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            // First card on the screen when it exists: a crash the owner cannot
+            // see is a crash that never gets fixed.
+            val diagnostics = state.lastCrash ?: state.problems
+            if (diagnostics != null) {
+                item {
+                    DiagnosticsCard(
+                        report = diagnostics,
+                        isFatal = state.lastCrash != null,
+                        onCopy = { copyToClipboard(context, diagnostics) },
+                        onShare = { shareText(context, "Plantage myLLM", diagnostics) },
+                        onFile = viewModel::reportCrash,
+                        onClear = viewModel::clearDiagnostics,
+                    )
+                }
+            }
+
             item {
                 UpdateCard(
                     versionName = state.installedVersion,
@@ -129,6 +149,51 @@ fun DevLoopScreen(container: AppContainer) {
                     onDone = { viewModel.setStatus(request, ChangeStatus.DONE) },
                     onDelete = { viewModel.delete(request) },
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiagnosticsCard(
+    report: String,
+    isFatal: Boolean,
+    onCopy: () -> Unit,
+    onShare: () -> Unit,
+    onFile: () -> Unit,
+    onClear: () -> Unit,
+) {
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+        ),
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text(
+                if (isFatal) "L'app a planté" else "Une erreur a été enregistrée",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Spacer(Modifier.size(6.dp))
+            Text(
+                "Copie ce rapport et envoie-le, c'est ce qui permet de corriger. " +
+                    "Il reste sur l'appareil tant que tu ne le partages pas.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Spacer(Modifier.size(8.dp))
+            Text(
+                report.take(1200),
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Spacer(Modifier.size(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TextButton(onClick = onCopy) { Text("Copier") }
+                TextButton(onClick = onShare) { Text("Partager") }
+                TextButton(onClick = onFile) { Text("Créer une demande") }
+                TextButton(onClick = onClear) { Text("Effacer") }
             }
         }
     }

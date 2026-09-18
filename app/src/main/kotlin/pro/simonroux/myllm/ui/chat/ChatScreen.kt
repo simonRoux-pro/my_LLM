@@ -6,13 +6,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -76,6 +76,10 @@ fun ChatScreen(container: AppContainer, settings: AppSettings) {
     }
 
     Scaffold(
+        // The screen sits inside the app's own Scaffold, which already reserves
+        // room for the navigation bar. Without this the inner Scaffold reserves
+        // it a second time and leaves a dead band under the composer.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = {
@@ -227,7 +231,10 @@ private fun MessageBubble(message: ChatMessage, showStats: Boolean) {
             } else {
                 MaterialTheme.colorScheme.surfaceVariant
             },
-            modifier = Modifier.widthIn(max = 320.dp),
+            // weight(fill = false) lets a short message stay short while a long
+            // one stops at the available width. A fixed max in dp looked
+            // full-width on a large phone, which read as bad alignment.
+            modifier = Modifier.weight(1f, fill = false),
         ) {
             Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                 Text(
@@ -264,7 +271,7 @@ private fun StreamingBubble(text: String) {
         Surface(
             shape = RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.widthIn(max = 320.dp),
+            modifier = Modifier.weight(1f, fill = false),
         ) {
             Text(
                 text,

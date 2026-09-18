@@ -27,7 +27,16 @@ Par ordre de valeur réelle, pas de difficulté.
       **À traiter avant de passer la base en version 2**, sinon une migration
       qui perd des données ne sera détectée que sur le téléphone.
 
+- [ ] **Trouver la cause du plantage.** L'app démarre et l'interface fonctionne,
+      mais elle s'arrête de façon répétée. Le rapport de plantage est maintenant
+      écrit sur l'appareil et affiché en haut de l'onglet Évolutions : copier ce
+      texte est la première chose à faire.
+
 ## Ensuite
+
+- [ ] **Joindre une capture d'écran à une demande de modification.** Décrire un
+      problème d'interface par écrit depuis un téléphone est pénible ; une image
+      vaut le paragraphe. `ChangeAttachment` accepte déjà un type MIME.
 
 - [ ] **Import d'un GGUF depuis le stockage.** Le téléchargement par URL marche ;
       pouvoir pointer un fichier déjà présent évite de retélécharger plusieurs

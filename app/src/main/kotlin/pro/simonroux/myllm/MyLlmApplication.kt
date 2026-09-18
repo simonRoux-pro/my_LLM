@@ -1,22 +1,47 @@
 package pro.simonroux.myllm
 
 import android.app.Application
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import pro.simonroux.myllm.core.AppContainer
+import pro.simonroux.myllm.core.CrashReporter
 
 class MyLlmApplication : Application() {
 
     lateinit var container: AppContainer
         private set
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    lateinit var crashReporter: CrashReporter
+        private set
+
+    /**
+     * Startup work must not be able to kill the app.
+     *
+     * Without a handler, anything thrown inside this scope reaches the default
+     * uncaught handler and takes the process down before the first screen is
+     * drawn, which is indistinguishable from the app simply not working. With
+     * one, the failure is recorded and visible in the Évolutions tab while the
+     * rest of the app carries on.
+     */
+    private val scope by lazy {
+        CoroutineScope(
+            SupervisorJob() + Dispatchers.Default +
+                CoroutineExceptionHandler { _, throwable ->
+                    crashReporter.recordNonFatal("démarrage", throwable)
+                },
+        )
+    }
 
     override fun onCreate() {
         super.onCreate()
-        container = AppContainer(this)
+
+        crashReporter = CrashReporter(this)
+        crashReporter.install()
+
+        container = AppContainer(this, crashReporter)
 
         // Off the main thread: seeding the catalog and reconciling the model
         // directory both touch disk, and doing that in onCreate is a visible

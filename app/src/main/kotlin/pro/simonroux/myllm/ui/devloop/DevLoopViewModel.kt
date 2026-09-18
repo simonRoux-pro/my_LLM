@@ -22,9 +22,55 @@ class DevLoopViewModel(private val container: AppContainer) : ViewModel() {
     val state: StateFlow<DevLoopUiState> = _state.asStateFlow()
 
     init {
+        refreshDiagnostics()
         viewModelScope.launch {
             container.changeRequestRepository.observeAll().collect { requests ->
                 _state.update { it.copy(requests = requests) }
+            }
+        }
+    }
+
+    fun refreshDiagnostics() {
+        _state.update {
+            it.copy(
+                lastCrash = container.crashReporter.lastCrash(),
+                problems = container.crashReporter.problems(),
+            )
+        }
+    }
+
+    fun clearDiagnostics() {
+        container.crashReporter.clear()
+        refreshDiagnostics()
+    }
+
+    /**
+     * Files the crash as a change request with the trace attached.
+     *
+     * The trace is what makes the request actionable, and pasting it by hand
+     * from a phone is exactly the friction that stops bugs being reported.
+     */
+    fun reportCrash() {
+        val trace = _state.value.lastCrash ?: _state.value.problems ?: return
+        viewModelScope.launch {
+            val id = container.changeRequestRepository.submit(
+                title = "Plantage : " + trace.lineSequence()
+                    .firstOrNull { it.startsWith("java.") || it.startsWith("kotlin.") }
+                    ?.take(80).orEmpty().ifBlank { "cause à déterminer" },
+                body = "Plantage constaté sur l'appareil. Trace complète en pièce jointe.",
+                kind = "BUG",
+            )
+            container.changeRequestRepository.byId(id)?.let { request ->
+                container.changeRequestRepository.save(
+                    request.copy(
+                        attachments = listOf(
+                            pro.simonroux.myllm.core.model.ChangeAttachment(
+                                label = "Trace",
+                                content = trace,
+                            ),
+                        ),
+                    ),
+                )
             }
         }
     }
@@ -102,4 +148,8 @@ data class DevLoopUiState(
     val installedVersion: String = "",
     val availableUpdate: AvailableUpdate? = null,
     val updateStatus: String? = null,
+    /** Stack trace of the last fatal crash, if there was one. */
+    val lastCrash: String? = null,
+    /** Non-fatal failures recorded since the last clear. */
+    val problems: String? = null,
 )
